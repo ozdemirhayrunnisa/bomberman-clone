@@ -13,6 +13,7 @@ add_executable(BombermanClone
     src/Player.cpp
     src/Bomb.cpp
     src/Explosion.cpp
+    src/PowerUp.cpp
 )
 
 target_include_directories(BombermanClone PRIVATE src)

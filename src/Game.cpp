@@ -1,6 +1,7 @@
 #include "Game.hpp"
 #include "Constants.hpp"
 #include <algorithm>
+#include <cstdlib>
 
 Game::Game()
     : window(sf::VideoMode({static_cast<unsigned>(WINDOW_WIDTH),
@@ -92,6 +93,20 @@ void Game::update(float dt) {
     );
     activeBombs -= before - static_cast<int>(bombs.size());
 
+    // Power-up toplama
+    powerUps.erase(
+        std::remove_if(powerUps.begin(), powerUps.end(),
+            [&](const PowerUp& p) {
+                if (p.getCol() == player1.getCol() && p.getRow() == player1.getRow()) {
+                    if (p.getType() == PowerUpType::Range) player1.addRange();
+                    else                                   player1.addBomb();
+                    return true;
+                }
+                return false;
+            }),
+        powerUps.end()
+    );
+
     checkPlayerDeath();
     refreshHUD();
 }
@@ -99,6 +114,7 @@ void Game::update(float dt) {
 void Game::render() {
     window.clear(sf::Color(20, 20, 30));
     map.render(window);
+    for (auto& pu  : powerUps)   pu.render(window);
     for (auto& exp : explosions) exp.render(window);
     for (auto& bomb : bombs)     bomb.render(window);
     player1.render(window);
@@ -159,6 +175,10 @@ void Game::processExplosions() {
                 if (t == TileType::Block) {
                     map.setTile(nc, nr, TileType::Empty);
                     score += 10;
+                    if (std::rand() % 100 < 30) {
+                        PowerUpType pu = (std::rand() % 2 == 0) ? PowerUpType::Range : PowerUpType::Bomb;
+                        powerUps.emplace_back(nc, nr, pu);
+                    }
                     break;
                 }
             }
@@ -195,6 +215,7 @@ void Game::reset() {
     player1     = Player(1, 1, sf::Color(70, 130, 220));
     bombs.clear();
     explosions.clear();
+    powerUps.clear();
     activeBombs = 0;
     score       = 0;
     state       = GameState::Playing;

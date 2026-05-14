@@ -8,6 +8,7 @@
 #include "Player.hpp"
 #include "Bomb.hpp"
 #include "Explosion.hpp"
+#include "PowerUp.hpp"
 
 enum class GameState { Playing, GameOver };
 
@@ -36,6 +37,7 @@ private:
 
     std::vector<Bomb>      bombs;
     std::vector<Explosion> explosions;
+    std::vector<PowerUp>   powerUps;
 
     sf::RectangleShape hudBar;
     sf::RectangleShape overlay;
