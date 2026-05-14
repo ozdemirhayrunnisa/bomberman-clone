@@ -9,6 +9,7 @@
 #include "Bomb.hpp"
 #include "Explosion.hpp"
 #include "PowerUp.hpp"
+#include "Enemy.hpp"
 
 enum class GameState { Playing, GameOver };
 
@@ -38,6 +39,7 @@ private:
     std::vector<Bomb>      bombs;
     std::vector<Explosion> explosions;
     std::vector<PowerUp>   powerUps;
+    std::vector<Enemy>     enemies;
 
     sf::RectangleShape hudBar;
     sf::RectangleShape overlay;
@@ -51,6 +53,8 @@ private:
     void tryPlaceBomb(int col, int row);
     void processExplosions();
     void checkPlayerDeath();
+    void checkEnemyCollisions();
+    void spawnEnemies();
     void refreshHUD();
     void reset();
 };

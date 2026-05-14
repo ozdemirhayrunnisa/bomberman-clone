@@ -34,6 +34,7 @@ Game::Game()
     overlay.setPosition({0.f, 0.f});
     overlay.setFillColor(sf::Color(0, 0, 0, 160));
 
+    spawnEnemies();
     refreshHUD();
 }
 
@@ -107,6 +108,25 @@ void Game::update(float dt) {
         powerUps.end()
     );
 
+    // Dusmanlari guncelle
+    for (auto& e : enemies) e.update(dt, map);
+
+    // Patlama dusman carpismasi
+    enemies.erase(
+        std::remove_if(enemies.begin(), enemies.end(),
+            [&](Enemy& e) {
+                for (const auto& exp : explosions) {
+                    if (exp.getCol() == e.getCol() && exp.getRow() == e.getRow()) {
+                        score += 100;
+                        return true;
+                    }
+                }
+                return false;
+            }),
+        enemies.end()
+    );
+
+    checkEnemyCollisions();
     checkPlayerDeath();
     refreshHUD();
 }
@@ -114,6 +134,7 @@ void Game::update(float dt) {
 void Game::render() {
     window.clear(sf::Color(20, 20, 30));
     map.render(window);
+    for (auto& e   : enemies)    e.render(window);
     for (auto& pu  : powerUps)   pu.render(window);
     for (auto& exp : explosions) exp.render(window);
     for (auto& bomb : bombs)     bomb.render(window);
@@ -210,12 +231,39 @@ void Game::refreshHUD() {
     );
 }
 
+void Game::spawnEnemies() {
+    // Baslangic pozisyonlarini temizle ve dusman olustur
+    struct Spawn { int c, r; float vx, vy; };
+    const Spawn spawns[] = {
+        {13, 11,  ENEMY_SPEED, 0.f},
+        {11,  9,  0.f, ENEMY_SPEED},
+        { 5, 11, -ENEMY_SPEED, 0.f},
+    };
+    for (auto& s : spawns) {
+        map.setTile(s.c, s.r, TileType::Empty);
+        enemies.emplace_back(s.c, s.r, s.vx, s.vy);
+    }
+}
+
+void Game::checkEnemyCollisions() {
+    if (player1.isInvincible()) return;
+    for (const auto& e : enemies) {
+        if (e.getCol() == player1.getCol() && e.getRow() == player1.getRow()) {
+            player1.hit();
+            if (!player1.isAlive()) state = GameState::GameOver;
+            return;
+        }
+    }
+}
+
 void Game::reset() {
     map         = Map();
     player1     = Player(1, 1, sf::Color(70, 130, 220));
     bombs.clear();
     explosions.clear();
     powerUps.clear();
+    enemies.clear();
+    spawnEnemies();
     activeBombs = 0;
     score       = 0;
     state       = GameState::Playing;
