@@ -3,7 +3,8 @@
 
 Player::Player(int startCol, int startRow, sf::Color color)
     : px(static_cast<float>(startCol * TILE_SIZE)),
-      py(static_cast<float>(startRow * TILE_SIZE)) {
+      py(static_cast<float>(startRow * TILE_SIZE)),
+      startCol(startCol), startRow(startRow), color(color) {
 
     const float size = TILE_SIZE - 10.f;
     shape.setSize({size, size});
@@ -60,7 +61,22 @@ bool Player::canMoveTo(float x, float y, const Map& map) const {
            map.isWalkable(c1, r1);
 }
 
+void Player::hit() {
+    if (--lives <= 0) alive = false;
+    respawn();
+    invTimer = 1.5f;
+}
+
+void Player::respawn() {
+    px = static_cast<float>(startCol * TILE_SIZE);
+    py = static_cast<float>(startRow * TILE_SIZE);
+}
+
 void Player::render(sf::RenderWindow& window) {
+    // Dokunulmazken yanip soner
+    if (invTimer > 0.f && static_cast<int>(invTimer * 10) % 2 == 0)
+        return;
+
     shape.setPosition({px + 5.f, py + 5.f});
     window.draw(shape);
 }

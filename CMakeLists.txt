@@ -12,6 +12,7 @@ add_executable(BombermanClone
     src/Map.cpp
     src/Player.cpp
     src/Bomb.cpp
+    src/Explosion.cpp
 )
 
 target_include_directories(BombermanClone PRIVATE src)

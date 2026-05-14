@@ -25,18 +25,24 @@ public:
     bool wantsBomb()      const { return bombReq; }
     void consumeBombReq()       { bombReq = false; }
 
-    void loseLife() { if (--lives <= 0) alive = false; }
+    bool isInvincible()   const { return invTimer > 0.f; }
+    void updateInvincible(float dt) { if (invTimer > 0.f) invTimer -= dt; }
+
+    void hit();
     void addBomb()  { ++bombCount; }
     void addRange() { ++expRange; }
 
 private:
     float px, py;
+    int   startCol, startRow;
+    sf::Color color;
     sf::RectangleShape shape;
 
-    bool alive     = true;
-    int  lives     = 3;
-    int  bombCount = 1;
-    int  expRange  = 2;
+    bool  alive     = true;
+    int   lives     = 3;
+    int   bombCount = 1;
+    int   expRange  = 2;
+    float invTimer  = 0.f;
 
     bool moveUp    = false;
     bool moveDown  = false;
@@ -46,4 +52,5 @@ private:
     bool bombHeld  = false;
 
     bool canMoveTo(float x, float y, const Map& map) const;
+    void respawn();
 };
