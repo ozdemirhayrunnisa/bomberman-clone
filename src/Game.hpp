@@ -22,20 +22,22 @@ private:
     sf::RenderWindow window;
     sf::Clock        clock;
 
-    sf::Font               font;
-    bool                   fontLoaded = false;
-    std::optional<sf::Text> livesText;
+    sf::Font                font;
+    bool                    fontLoaded = false;
+    std::optional<sf::Text> p1InfoText;
+    std::optional<sf::Text> p2InfoText;
     std::optional<sf::Text> scoreText;
-    std::optional<sf::Text> infoText;
-    std::optional<sf::Text> gameOverText;
-    std::optional<sf::Text> restartText;
     std::optional<sf::Text> enemyText;
+    std::optional<sf::Text> centerText;
+    std::optional<sf::Text> restartText;
 
     Map       map;
     Player    player1;
+    Player    player2;
     int       score       = 0;
-    int       activeBombs = 0;
-    GameState state       = GameState::Playing;
+    int       activeBombs1 = 0;
+    int       activeBombs2 = 0;
+    GameState state        = GameState::Playing;
 
     std::vector<Bomb>      bombs;
     std::vector<Explosion> explosions;
@@ -52,10 +54,10 @@ private:
     void renderGameOver();
     void renderWin();
 
-    void tryPlaceBomb(int col, int row);
+    void tryPlaceBomb(Player& player, int& activeBombs);
     void processExplosions();
-    void checkPlayerDeath();
-    void checkEnemyCollisions();
+    void checkPlayerDeath(Player& player);
+    void checkEnemyCollisions(Player& player);
     void spawnEnemies();
     void refreshHUD();
     void reset();
