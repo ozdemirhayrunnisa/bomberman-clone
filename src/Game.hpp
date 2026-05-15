@@ -11,7 +11,7 @@
 #include "PowerUp.hpp"
 #include "Enemy.hpp"
 
-enum class GameState { Playing, GameOver, Won };
+enum class GameState { Menu, Playing, GameOver, Won };
 
 class Game {
 public:
@@ -37,7 +37,7 @@ private:
     int       score       = 0;
     int       activeBombs1 = 0;
     int       activeBombs2 = 0;
-    GameState state        = GameState::Playing;
+    GameState state        = GameState::Menu;
 
     std::vector<Bomb>      bombs;
     std::vector<Explosion> explosions;
@@ -51,6 +51,7 @@ private:
     void update(float dt);
     void render();
     void renderHUD();
+    void renderMenu();
     void renderGameOver();
     void renderWin();
 

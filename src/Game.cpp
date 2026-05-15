@@ -57,6 +57,10 @@ void Game::handleEvents() {
         if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
             if (key->code == sf::Keyboard::Key::Escape)
                 window.close();
+            if ((key->code == sf::Keyboard::Key::Space ||
+                 key->code == sf::Keyboard::Key::Enter) &&
+                state == GameState::Menu)
+                state = GameState::Playing;
             if (key->code == sf::Keyboard::Key::R &&
                 (state == GameState::GameOver || state == GameState::Won))
                 reset();
@@ -66,6 +70,7 @@ void Game::handleEvents() {
 
 void Game::update(float dt) {
     if (state != GameState::Playing) return;
+
 
     // Oyuncu 1 — WASD + Space
     if (player1.isAlive()) {
@@ -173,6 +178,7 @@ void Game::render() {
     if (player1.isAlive()) player1.render(window);
     if (player2.isAlive()) player2.render(window);
     renderHUD();
+    if (state == GameState::Menu)     renderMenu();
     if (state == GameState::GameOver) renderGameOver();
     if (state == GameState::Won)      renderWin();
     window.display();
@@ -192,6 +198,34 @@ void Game::renderHUD() {
     if (p2InfoText) window.draw(*p2InfoText);
     if (scoreText)  window.draw(*scoreText);
     if (enemyText)  window.draw(*enemyText);
+}
+
+void Game::renderMenu() {
+    window.draw(overlay);
+    if (!centerText) return;
+
+    centerText->setString("BOMBERMAN");
+    centerText->setFillColor(sf::Color(255, 200, 0));
+    auto tb = centerText->getLocalBounds();
+    centerText->setOrigin({tb.size.x / 2.f, tb.size.y / 2.f});
+    centerText->setPosition({WINDOW_WIDTH / 2.f, HUD_TOP / 2.f - 80.f});
+    window.draw(*centerText);
+    centerText->setFillColor(sf::Color::White);
+
+    struct Line { const char* text; float dy; sf::Color color; };
+    const Line lines[] = {
+        {"P1: WASD + Space",      -10.f, sf::Color(130, 180, 255)},
+        {"P2: Ok Tuslari + Enter", 20.f, sf::Color(130, 220, 130)},
+        {"Space / Enter - Baslat", 65.f, sf::Color(220, 220, 220)},
+    };
+    for (auto& l : lines) {
+        restartText->setString(l.text);
+        restartText->setFillColor(l.color);
+        auto rb = restartText->getLocalBounds();
+        restartText->setOrigin({rb.size.x / 2.f, rb.size.y / 2.f});
+        restartText->setPosition({WINDOW_WIDTH / 2.f, HUD_TOP / 2.f + l.dy});
+        window.draw(*restartText);
+    }
 }
 
 void Game::renderGameOver() {
@@ -343,6 +377,7 @@ void Game::reset() {
     activeBombs2 = 0;
     score        = 0;
     state        = GameState::Playing;
+
     spawnEnemies();
     refreshHUD();
 }
