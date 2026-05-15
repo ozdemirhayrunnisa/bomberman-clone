@@ -24,6 +24,7 @@ Game::Game()
         makeText(infoText,   450.f, static_cast<float>(HUD_TOP) + 14.f, 18);
         makeText(gameOverText, 0.f, 0.f, 48);
         makeText(restartText,  0.f, 0.f, 22);
+        makeText(enemyText,  600.f, static_cast<float>(HUD_TOP) + 12.f, 20);
     }
 
     hudBar.setSize({static_cast<float>(WINDOW_WIDTH), static_cast<float>(HUD_HEIGHT)});
@@ -54,7 +55,8 @@ void Game::handleEvents() {
         if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
             if (key->code == sf::Keyboard::Key::Escape)
                 window.close();
-            if (key->code == sf::Keyboard::Key::R && state == GameState::GameOver)
+            if (key->code == sf::Keyboard::Key::R &&
+                (state == GameState::GameOver || state == GameState::Won))
                 reset();
         }
     }
@@ -128,6 +130,10 @@ void Game::update(float dt) {
 
     checkEnemyCollisions();
     checkPlayerDeath();
+
+    if (enemies.empty() && state == GameState::Playing)
+        state = GameState::Won;
+
     refreshHUD();
 }
 
@@ -141,6 +147,7 @@ void Game::render() {
     player1.render(window);
     renderHUD();
     if (state == GameState::GameOver) renderGameOver();
+    if (state == GameState::Won)      renderWin();
     window.display();
 }
 
@@ -149,6 +156,7 @@ void Game::renderHUD() {
     if (livesText) window.draw(*livesText);
     if (scoreText) window.draw(*scoreText);
     if (infoText)  window.draw(*infoText);
+    if (enemyText) window.draw(*enemyText);
 }
 
 void Game::renderGameOver() {
@@ -229,6 +237,34 @@ void Game::refreshHUD() {
         "Bomba: " + std::to_string(player1.getBombCount()) +
         "  Menzil: " + std::to_string(player1.getExpRange())
     );
+    if (enemyText)
+        enemyText->setString("Dusman: " + std::to_string(enemies.size()));
+}
+
+void Game::renderWin() {
+    sf::RectangleShape greenOverlay;
+    greenOverlay.setSize({static_cast<float>(WINDOW_WIDTH), static_cast<float>(HUD_TOP)});
+    greenOverlay.setPosition({0.f, 0.f});
+    greenOverlay.setFillColor(sf::Color(0, 80, 0, 160));
+    window.draw(greenOverlay);
+
+    if (!gameOverText) return;
+
+    gameOverText->setString("TEBRIKLER!");
+    gameOverText->setFillColor(sf::Color(100, 255, 100));
+    auto gb = gameOverText->getLocalBounds();
+    gameOverText->setOrigin({gb.size.x / 2.f, gb.size.y / 2.f});
+    gameOverText->setPosition({WINDOW_WIDTH / 2.f, HUD_TOP / 2.f - 40.f});
+    window.draw(*gameOverText);
+
+    restartText->setString("Skor: " + std::to_string(score) + "   |   R - Yeniden Baslat");
+    restartText->setFillColor(sf::Color::White);
+    auto rb = restartText->getLocalBounds();
+    restartText->setOrigin({rb.size.x / 2.f, rb.size.y / 2.f});
+    restartText->setPosition({WINDOW_WIDTH / 2.f, HUD_TOP / 2.f + 20.f});
+    window.draw(*restartText);
+
+    gameOverText->setFillColor(sf::Color::White);
 }
 
 void Game::spawnEnemies() {

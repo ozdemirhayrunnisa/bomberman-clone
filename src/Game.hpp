@@ -11,7 +11,7 @@
 #include "PowerUp.hpp"
 #include "Enemy.hpp"
 
-enum class GameState { Playing, GameOver };
+enum class GameState { Playing, GameOver, Won };
 
 class Game {
 public:
@@ -29,6 +29,7 @@ private:
     std::optional<sf::Text> infoText;
     std::optional<sf::Text> gameOverText;
     std::optional<sf::Text> restartText;
+    std::optional<sf::Text> enemyText;
 
     Map       map;
     Player    player1;
@@ -49,6 +50,7 @@ private:
     void render();
     void renderHUD();
     void renderGameOver();
+    void renderWin();
 
     void tryPlaceBomb(int col, int row);
     void processExplosions();
