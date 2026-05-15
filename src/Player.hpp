@@ -1,13 +1,14 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <array>
 #include "Constants.hpp"
 
 class Map;
 
 class Player {
 public:
-    Player(int startCol, int startRow, sf::Color color);
+    Player(int startCol, int startRow, sf::Color fallbackColor);
 
     void handleInput(sf::Keyboard::Key up, sf::Keyboard::Key down,
                      sf::Keyboard::Key left, sf::Keyboard::Key right,
@@ -25,17 +26,28 @@ public:
     bool wantsBomb()      const { return bombReq; }
     void consumeBombReq()       { bombReq = false; }
 
-    bool isInvincible()   const { return invTimer > 0.f; }
-    void updateInvincible(float dt) { if (invTimer > 0.f) invTimer -= dt; }
+    bool isInvincible()         const { return invTimer > 0.f; }
+    void updateInvincible(float dt)   { if (invTimer > 0.f) invTimer -= dt; }
 
     void hit();
     void addBomb()  { ++bombCount; }
     void addRange() { ++expRange; }
 
 private:
-    float px, py;
-    int   startCol, startRow;
-    sf::Color color;
+    float     px, py;
+    int       startCol, startRow;
+    sf::Color fallbackColor;
+
+    // Animasyon
+    static constexpr int   FRAME_COUNT = 3;
+    static constexpr float FRAME_TIME  = 0.15f;
+    std::array<sf::Texture, FRAME_COUNT> textures;
+    bool  texturesLoaded = false;
+    int   currentFrame   = 0;
+    float frameTimer     = 0.f;
+    bool  facingLeft     = false;
+
+    // Yedek kare (sprite yuklenemezse)
     sf::RectangleShape shape;
 
     bool  alive     = true;

@@ -1,14 +1,24 @@
 #include "Player.hpp"
 #include "Map.hpp"
+#include <algorithm>
 
-Player::Player(int startCol, int startRow, sf::Color color)
+Player::Player(int startCol, int startRow, sf::Color fallbackColor)
     : px(static_cast<float>(startCol * TILE_SIZE)),
       py(static_cast<float>(startRow * TILE_SIZE)),
-      startCol(startCol), startRow(startRow), color(color) {
+      startCol(startCol), startRow(startRow),
+      fallbackColor(fallbackColor) {
 
+    // Sprite frameleri yukle
+    texturesLoaded = true;
+    for (int i = 0; i < FRAME_COUNT; ++i) {
+        if (!textures[i].loadFromFile("assets/player" + std::to_string(i) + ".png"))
+            texturesLoaded = false;
+    }
+
+    // Yedek kare
     const float size = TILE_SIZE - 10.f;
     shape.setSize({size, size});
-    shape.setFillColor(color);
+    shape.setFillColor(fallbackColor);
     shape.setOutlineThickness(2.f);
     shape.setOutlineColor(sf::Color::White);
 }
@@ -41,11 +51,27 @@ void Player::update(float dt, const Map& map) {
         vy *= 0.7071f;
     }
 
+    if (vx < 0.f) facingLeft = true;
+    if (vx > 0.f) facingLeft = false;
+
     float newX = px + vx * dt;
     if (canMoveTo(newX, py, map)) px = newX;
 
     float newY = py + vy * dt;
     if (canMoveTo(px, newY, map)) py = newY;
+
+    // Kare animasyonu
+    bool isMoving = (moveUp || moveDown || moveLeft || moveRight);
+    if (isMoving) {
+        frameTimer += dt;
+        if (frameTimer >= FRAME_TIME) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % FRAME_COUNT;
+        }
+    } else {
+        currentFrame = 0;
+        frameTimer   = 0.f;
+    }
 }
 
 bool Player::canMoveTo(float x, float y, const Map& map) const {
@@ -73,10 +99,27 @@ void Player::respawn() {
 }
 
 void Player::render(sf::RenderWindow& window) {
-    // Dokunulmazken yanip soner
     if (invTimer > 0.f && static_cast<int>(invTimer * 10) % 2 == 0)
         return;
 
-    shape.setPosition({px + 5.f, py + 5.f});
-    window.draw(shape);
+    if (texturesLoaded) {
+        sf::Sprite sp(textures[currentFrame]);
+
+        auto sz = textures[currentFrame].getSize();
+        float scale = static_cast<float>(TILE_SIZE - 4) /
+                      static_cast<float>(std::max(sz.x, sz.y));
+
+        if (facingLeft) {
+            sp.setScale({-scale, scale});
+            sp.setPosition({px + static_cast<float>(TILE_SIZE) - 2.f, py + 2.f});
+        } else {
+            sp.setScale({scale, scale});
+            sp.setPosition({px + 2.f, py + 2.f});
+        }
+
+        window.draw(sp);
+    } else {
+        shape.setPosition({px + 5.f, py + 5.f});
+        window.draw(shape);
+    }
 }
